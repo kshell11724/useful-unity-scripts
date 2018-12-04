@@ -1,0 +1,81 @@
+[Tooltip("The target transform that this should follow")]
+[SerializeField] Transform target;
+
+[Space]
+
+[Tooltip("The x offset from the target")]
+[SerializeField] int xOffset;
+
+[Tooltip("The y offset from the target")]
+[SerializeField] int yOffset;
+
+[Space]
+[Tooltip("How close to the edge of the screen is the waypoint allowed to go? Must be a value between 0 and half of the screen width")]
+[SerializeField] int edgeThicknessX;
+[Tooltip("How close to the edge of the screen is the waypoint allowed to go? Must be a value between 0 and half of the screen height")]
+[SerializeField] int edgeThicknessY;
+
+[Space]
+[Tooltip("The transform of the image that should rotate to point the target")]
+[SerializeField] Transform arrow;
+
+[Tooltip("The rotational offset of the arrow")]
+[SerializeField] float arrowRotation;
+
+Camera cam;
+
+void Start () {
+
+    //finds the main camera
+    cam = Camera.main;
+
+    //error messages
+    if (cam == null)
+    {
+        Debug.LogError("Couldn't find the main camera!");
+    }
+
+    if (edgeThicknessX < 0)
+    {
+        Debug.LogWarning("edgeThicknessX (" + edgeThicknessX + ") Has a value less than 0.");
+    } else if (edgeThicknessX > Screen.width/2)
+    {
+        Debug.LogWarning("edgeThicknessX (" + edgeThicknessX + ") Has a value greater than Half the screen width (" + Screen.width/2 + ").");
+    }
+
+    if (edgeThicknessY < 0)
+    {
+        Debug.LogWarning("edgeThicknessY (" + edgeThicknessY + ") Has a value less than 0.");
+    }
+    else if (edgeThicknessY > Screen.height / 2)
+    {
+        Debug.LogWarning("edgeThicknessY (" + edgeThicknessY + ") Has a value greater than Half the screen height (" + Screen.height / 2 + ").");
+    }
+}
+
+void LateUpdate () {
+
+    //sets the desired position
+    Vector3 targetPos = cam.WorldToScreenPoint(target.position) + new Vector3(xOffset,yOffset,0);
+
+    //makes sure it doesn't go out of the screen
+    targetPos.x = Mathf.Clamp(targetPos.x, edgeThicknessX, Screen.width- edgeThicknessX);
+    targetPos.y = Mathf.Clamp(targetPos.y, edgeThicknessY, Screen.height- edgeThicknessY);
+
+    //actually sets the position
+    transform.position = targetPos;
+
+    //rotates the arrow
+    if(arrow != null)
+    {
+        Vector3 rotation = cam.WorldToScreenPoint(target.position) - transform.position;
+        arrow.up = rotation;
+
+        if(arrowRotation != 0)
+        {
+            arrow.Rotate(new Vector3(0, 0, arrowRotation));
+        }
+
+    }
+
+}
